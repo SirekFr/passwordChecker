@@ -3,18 +3,18 @@ Checks if passwords input in arguments have been pwned at https://api.pwnedpassw
 Examples:
 >>>python passwordChecker.py test test2
 <<<test was found 89159 times!
-<<<test2 was found 2316 times!
-<<<done!
+test2 was found 2316 times!
+done!
 
 >>>python passwordChecker.py save test test2
 >>>python passwordChecker.py file 
 <<<checking saved passwords
-<<<Password starting with te, has been leaked 89159 times.
-<<<Password starting with te, has been leaked 2316 times.
+Password starting with te, has been leaked 89159 times.
+Password starting with te, has been leaked 2316 times.
 
 >>>python passwordChecker.py file mail sirek.frantisek@gmail.com
 <<<checking saved passwords
-<<<Mail sent
+Mail sent
 
 an email is sent to the inputted address with the regular output
 
