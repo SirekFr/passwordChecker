@@ -4,15 +4,17 @@ import sys
 import smtplib
 from email.message import EmailMessage
 from string import Template
-from pathlib import Path  # os.path
+from pathlib import Path
+import os
 
 
-def send_email(message):
-    html = Template(Path('index.html').read_text())
+def send_email(message, address):
+    path_to_index = Path(__file__).parent / "index.html"
+    html = Template(path_to_index.read_text())
 
     email = EmailMessage()
     email['from'] = 'passwordChecker'
-    email['to'] = ''
+    email['to'] = f'{address}'
     email['subject'] = 'Password Check'
 
     email.set_content(html.substitute({'message': message}), 'html')
@@ -55,9 +57,12 @@ def pwnd_api_check(password):
 
 def file_mode(args):
     try:
-        with open('saved.txt', mode='r') as saved_file:
+        save_file_path = Path(__file__).parent / "saved.txt"
+        with open(save_file_path, mode='r') as saved_file:
             lines = saved_file.readlines()
             message_string = ""
+            if not lines:
+                return "No saved passwords"
             for line in lines:
                 saved_hash = line.rsplit(' ')
                 response = request_api_data(saved_hash[0])
@@ -65,10 +70,8 @@ def file_mode(args):
 
                 first_two_letters = saved_hash[2].replace('\n', '')
                 message_string += (f"Password starting with {first_two_letters}, "
-                                   f"has been leaked {leaks_count} times.\n <br>")
-        if len(args) == 2:
-            if args[1] == "mail":
-                send_email(message_string)
+                                   f"has been leaked {leaks_count} times.\n<br>")
+            return message_string
     except FileNotFoundError as err:
         print('file does not exist')
         raise err
@@ -86,12 +89,29 @@ def save_passwords(args):
         raise err
 
 
+def create_task(args):
+    bat_file_address = Path(__file__).parent / "starttask.bat"
+    with open(bat_file_address, mode='w') as bat_file:
+        bat_file.write(f'python {Path("passwordChecker.py").absolute()} file mail {args[1]}\n')
+    os.system(f'SchTasks /Create /SC DAILY /TN "passwordChecker cmd task creation test" '
+              f'/TR "{bat_file_address}" /ST {args[2]}')
+    return "Done"
+
+
 def main(args):
     if args[0] == "file":
         print("checking saved passwords")
-        file_mode(args)
+        message_string = file_mode(args)
+        if len(args) >= 2:
+            if args[1] == "mail":
+                send_email(message_string, args[2])
+        else:
+            print(message_string.replace("<br>", ""))
     elif args[0] == "save":
         save_passwords(args)
+    elif args[0] == "task":
+        create_task(args)
+        print("Task created")
     else:
         for password in args:
             count = pwnd_api_check(password)
