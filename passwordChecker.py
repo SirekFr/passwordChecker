@@ -9,6 +9,11 @@ import os
 
 
 def send_email(message, address):
+    """
+    Constructs and sends email containing leaked password info
+    :param message:
+    :param address:
+    """
     path_to_index = Path(__file__).parent / "index.html"
     html = Template(path_to_index.read_text())
 
@@ -44,6 +49,10 @@ def get_password_leaks_count(hashes, hash_to_check):
 
 
 def generate_hash(password):
+    """
+    :param password:
+    :return: hashed[head, tail]
+    """
     sha1password = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
     hashed = [sha1password[:5], sha1password[5:]]
     return hashed
@@ -56,6 +65,11 @@ def pwnd_api_check(password):
 
 
 def file_mode(args):
+    """
+    checks saved passwords for leaks
+    :param args:
+    :return: message_string: info on leaked passwords
+    """
     try:
         save_file_path = Path(__file__).parent / "saved.txt"
         with open(save_file_path, mode='r') as saved_file:
@@ -78,6 +92,10 @@ def file_mode(args):
 
 
 def save_passwords(args):
+    """
+    saves hashed password to a file, together with first two letters of password as identifiers
+    :param args:
+    """
     try:
         with open('saved.txt', mode='a') as saved_file:
             for password in args[1:]:
@@ -90,6 +108,11 @@ def save_passwords(args):
 
 
 def create_task(args):
+    """
+    Creates a daily task in windows task scheduler
+    :param args:
+    :return: "Done"
+    """
     bat_file_address = Path(__file__).parent / "starttask.bat"
     with open(bat_file_address, mode='w') as bat_file:
         bat_file.write(f'python {Path("passwordChecker.py").absolute()} file mail {args[1]}\n')
@@ -107,6 +130,7 @@ def main(args):
                 send_email(message_string, args[2])
         else:
             print(message_string.replace("<br>", ""))
+            #  adjusts the string for terminal output
     elif args[0] == "save":
         save_passwords(args)
     elif args[0] == "task":
